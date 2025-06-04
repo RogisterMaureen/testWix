@@ -20,8 +20,9 @@ if (!customElements.get("hello-world")) {
     }
 
     connectedCallback() {
-      const position = this.getAttribute("position") === "left" ? "left" : "right";
-      const size = this.getAttribute("size") || "medium";
+      // Lecture des attributs avec fallback sur dataset
+      const positionAttr = this.getAttribute("position") || this.dataset.position || "right";
+      const sizeAttr = this.getAttribute("size") || this.dataset.size || "medium";
 
       const container = document.createElement("div");
       container.innerHTML = `
@@ -113,14 +114,15 @@ if (!customElements.get("hello-world")) {
 
       this.shadowRoot.appendChild(container);
 
-      // Références aux éléments
-      this.emojiButton = this.shadowRoot.querySelector(".emoji-button");
+      // Références
+      this.widget = this.shadowRoot.querySelector(".chat-widget");
       this.chatbox = this.shadowRoot.querySelector(".chatbox");
+      this.emojiButton = this.shadowRoot.querySelector(".emoji-button");
       this.input = this.shadowRoot.querySelector("input");
       this.sendButton = this.shadowRoot.querySelector("button");
       this.messages = this.shadowRoot.querySelector(".chat-messages");
 
-      // Événements
+      // Interactions
       this.emojiButton.addEventListener("click", () => {
         const isOpen = this.chatbox.style.display === "flex";
         this.chatbox.style.display = isOpen ? "none" : "flex";
@@ -141,29 +143,19 @@ if (!customElements.get("hello-world")) {
         if (e.key === "Enter") this.sendButton.click();
       });
 
-      // Initialisation
-      this.updatePosition(position);
-      this.updateSize(size);
-
-      // Message externe (optionnel)
-      window.addEventListener("message", (event) => {
-        const { position, size } = event.data || {};
-        if (position) this.setAttribute("position", position);
-        if (size) this.setAttribute("size", size);
-      });
+      // Application initiale
+      this.updatePosition(positionAttr);
+      this.updateSize(sizeAttr);
     }
 
     updatePosition(position) {
-      const widget = this.shadowRoot.querySelector(".chat-widget");
-      const chatbox = this.shadowRoot.querySelector(".chatbox");
+      if (!this.widget || !this.chatbox) return;
 
-      if (!widget || !chatbox) return;
+      this.widget.style.left = position === "left" ? "20px" : "";
+      this.widget.style.right = position === "right" ? "20px" : "";
 
-      widget.style.left = position === "left" ? "20px" : "";
-      widget.style.right = position === "right" ? "20px" : "";
-
-      chatbox.style.left = position === "left" ? "0" : "";
-      chatbox.style.right = position === "right" ? "0" : "";
+      this.chatbox.style.left = position === "left" ? "0" : "";
+      this.chatbox.style.right = position === "right" ? "0" : "";
     }
 
     updateSize(size) {
