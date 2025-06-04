@@ -6,31 +6,22 @@ if (!customElements.get("hello-world")) {
     }
 
     static get observedAttributes() {
-  return ["position"];
-}
+      return ["position", "size"];
+    }
 
-attributeChangedCallback(name, oldValue, newValue) {
-  if (name === "position" && this.shadowRoot) {
-    this.updatePosition(newValue);
-  }
-}
+    attributeChangedCallback(name, oldValue, newValue) {
+      if (!this.shadowRoot) return;
 
-updatePosition(position) {
-  const widget = this.shadowRoot.querySelector(".chat-widget");
-  const chatbox = this.shadowRoot.querySelector(".chatbox");
-
-  if (widget && chatbox) {
-    widget.style.left = position === "left" ? "20px" : "";
-    widget.style.right = position === "right" ? "20px" : "";
-
-    chatbox.style.left = position === "left" ? "0" : "";
-    chatbox.style.right = position === "right" ? "0" : "";
-  }
-}
-
+      if (name === "position") {
+        this.updatePosition(newValue);
+      } else if (name === "size") {
+        this.updateSize(newValue);
+      }
+    }
 
     connectedCallback() {
       const position = this.getAttribute("position") === "left" ? "left" : "right";
+      const size = this.getAttribute("size") || "medium";
 
       const container = document.createElement("div");
       container.innerHTML = `
@@ -38,13 +29,11 @@ updatePosition(position) {
           .chat-widget {
             position: fixed;
             bottom: 20px;
-            ${position}: 20px;
             z-index: 9999;
             font-family: sans-serif;
           }
 
           .emoji-button {
-            font-size: 32px;
             cursor: pointer;
             background: white;
             border-radius: 50%;
@@ -61,7 +50,6 @@ updatePosition(position) {
             display: none;
             position: absolute;
             bottom: 60px;
-            ${position}: 0;
             width: 300px;
             height: 400px;
             background: white;
@@ -125,34 +113,76 @@ updatePosition(position) {
 
       this.shadowRoot.appendChild(container);
 
-      // Interactions
-      const emojiButton = this.shadowRoot.querySelector(".emoji-button");
-      const chatbox = this.shadowRoot.querySelector(".chatbox");
-      const input = this.shadowRoot.querySelector("input");
-      const sendButton = this.shadowRoot.querySelector("button");
-      const messages = this.shadowRoot.querySelector(".chat-messages");
+      this.emojiButton = this.shadowRoot.querySelector(".emoji-button");
+      this.chatbox = this.shadowRoot.querySelector(".chatbox");
+      this.input = this.shadowRoot.querySelector("input");
+      this.sendButton = this.shadowRoot.querySelector("button");
+      this.messages = this.shadowRoot.querySelector(".chat-messages");
 
-      emojiButton.addEventListener("click", () => {
-        const isOpen = chatbox.style.display === "flex";
-        chatbox.style.display = isOpen ? "none" : "flex";
+      // Events
+      this.emojiButton.addEventListener("click", () => {
+        const isOpen = this.chatbox.style.display === "flex";
+        this.chatbox.style.display = isOpen ? "none" : "flex";
       });
 
-      sendButton.addEventListener("click", () => {
-        const text = input.value.trim();
+      this.sendButton.addEventListener("click", () => {
+        const text = this.input.value.trim();
         if (text) {
           const userMsg = document.createElement("div");
           userMsg.textContent = text;
-          messages.appendChild(userMsg);
-          input.value = "";
-          messages.scrollTop = messages.scrollHeight;
+          this.messages.appendChild(userMsg);
+          this.input.value = "";
+          this.messages.scrollTop = this.messages.scrollHeight;
         }
       });
 
-      input.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") sendButton.click();
+      this.input.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") this.sendButton.click();
       });
 
+      // Initial state
       this.updatePosition(position);
+      this.updateSize(size);
+
+      // Optional: listen for messages (if using postMessage)
+      window.addEventListener("message", (event) => {
+        const { position, size } = event.data || {};
+        if (position) this.setAttribute("position", position);
+        if (size) this.setAttribute("size", size);
+      });
+    }
+
+    updatePosition(position) {
+      const widget = this.shadowRoot.querySelector(".chat-widget");
+      const chatbox = this.shadowRoot.querySelector(".chatbox");
+
+      if (!widget || !chatbox) return;
+
+      widget.style.left = position === "left" ? "20px" : "";
+      widget.style.right = position === "right" ? "20px" : "";
+
+      chatbox.style.left = position === "left" ? "0" : "";
+      chatbox.style.right = position === "right" ? "0" : "";
+    }
+
+    updateSize(size) {
+      const emojiButton = this.shadowRoot.querySelector(".emoji-button");
+      if (!emojiButton) return;
+
+      let fontSize;
+      switch (size) {
+        case "small":
+          fontSize = "20px";
+          break;
+        case "large":
+          fontSize = "48px";
+          break;
+        case "medium":
+        default:
+          fontSize = "32px";
+      }
+
+      emojiButton.style.fontSize = fontSize;
     }
   }
 
