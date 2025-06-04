@@ -113,13 +113,14 @@ if (!customElements.get("hello-world")) {
 
       this.shadowRoot.appendChild(container);
 
+      // Références aux éléments
       this.emojiButton = this.shadowRoot.querySelector(".emoji-button");
       this.chatbox = this.shadowRoot.querySelector(".chatbox");
       this.input = this.shadowRoot.querySelector("input");
       this.sendButton = this.shadowRoot.querySelector("button");
       this.messages = this.shadowRoot.querySelector(".chat-messages");
 
-      // Events
+      // Événements
       this.emojiButton.addEventListener("click", () => {
         const isOpen = this.chatbox.style.display === "flex";
         this.chatbox.style.display = isOpen ? "none" : "flex";
@@ -140,11 +141,11 @@ if (!customElements.get("hello-world")) {
         if (e.key === "Enter") this.sendButton.click();
       });
 
-      // Initial state
+      // Initialisation
       this.updatePosition(position);
       this.updateSize(size);
 
-      // Optional: listen for messages (if using postMessage)
+      // Message externe (optionnel)
       window.addEventListener("message", (event) => {
         const { position, size } = event.data || {};
         if (position) this.setAttribute("position", position);
@@ -166,8 +167,7 @@ if (!customElements.get("hello-world")) {
     }
 
     updateSize(size) {
-      const emojiButton = this.shadowRoot.querySelector(".emoji-button");
-      if (!emojiButton) return;
+      if (!this.emojiButton) return;
 
       let fontSize;
       switch (size) {
@@ -182,7 +182,7 @@ if (!customElements.get("hello-world")) {
           fontSize = "32px";
       }
 
-      emojiButton.style.fontSize = fontSize;
+      this.emojiButton.style.fontSize = fontSize;
     }
   }
 
