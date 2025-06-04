@@ -5,6 +5,30 @@ if (!customElements.get("hello-world")) {
       this.attachShadow({ mode: "open" });
     }
 
+    static get observedAttributes() {
+  return ["position"];
+}
+
+attributeChangedCallback(name, oldValue, newValue) {
+  if (name === "position" && this.shadowRoot) {
+    this.updatePosition(newValue);
+  }
+}
+
+updatePosition(position) {
+  const widget = this.shadowRoot.querySelector(".chat-widget");
+  const chatbox = this.shadowRoot.querySelector(".chatbox");
+
+  if (widget && chatbox) {
+    widget.style.left = position === "left" ? "20px" : "";
+    widget.style.right = position === "right" ? "20px" : "";
+
+    chatbox.style.left = position === "left" ? "0" : "";
+    chatbox.style.right = position === "right" ? "0" : "";
+  }
+}
+
+
     connectedCallback() {
       const position = this.getAttribute("position") === "left" ? "left" : "right";
 
@@ -127,6 +151,8 @@ if (!customElements.get("hello-world")) {
       input.addEventListener("keypress", (e) => {
         if (e.key === "Enter") sendButton.click();
       });
+
+      this.updatePosition(position);
     }
   }
 
