@@ -12,17 +12,13 @@ if (!customElements.get("hello-world")) {
     attributeChangedCallback(name, oldValue, newValue) {
       if (!this.shadowRoot) return;
 
-      if (name === "position") {
-        this.updatePosition(newValue);
-      } else if (name === "size") {
-        this.updateSize(newValue);
-      }
+      if (name === "position") this.updatePosition(newValue);
+      if (name === "size") this.updateSize(newValue);
     }
 
     connectedCallback() {
-      // Lecture des attributs avec fallback sur dataset
-      const positionAttr = this.getAttribute("position") || this.dataset.position || "right";
-      const sizeAttr = this.getAttribute("size") || this.dataset.size || "medium";
+      const position = this.getAttribute("position") || "right";
+      const size = this.getAttribute("size") || "medium";
 
       const container = document.createElement("div");
       container.innerHTML = `
@@ -114,15 +110,12 @@ if (!customElements.get("hello-world")) {
 
       this.shadowRoot.appendChild(container);
 
-      // Références
-      this.widget = this.shadowRoot.querySelector(".chat-widget");
-      this.chatbox = this.shadowRoot.querySelector(".chatbox");
       this.emojiButton = this.shadowRoot.querySelector(".emoji-button");
+      this.chatbox = this.shadowRoot.querySelector(".chatbox");
       this.input = this.shadowRoot.querySelector("input");
       this.sendButton = this.shadowRoot.querySelector("button");
       this.messages = this.shadowRoot.querySelector(".chat-messages");
 
-      // Interactions
       this.emojiButton.addEventListener("click", () => {
         const isOpen = this.chatbox.style.display === "flex";
         this.chatbox.style.display = isOpen ? "none" : "flex";
@@ -143,36 +136,36 @@ if (!customElements.get("hello-world")) {
         if (e.key === "Enter") this.sendButton.click();
       });
 
-      // Application initiale
-      this.updatePosition(positionAttr);
-      this.updateSize(sizeAttr);
+      // Init
+      this.updatePosition(position);
+      this.updateSize(size);
+
+      // Écoute postMessage pour debug depuis Wix Studio
+      window.addEventListener("message", (e) => {
+        const { position, size } = e.data || {};
+        if (position) this.setAttribute("position", position);
+        if (size) this.setAttribute("size", size);
+      });
     }
 
     updatePosition(position) {
-      if (!this.widget || !this.chatbox) return;
+      const widget = this.shadowRoot.querySelector(".chat-widget");
+      const chatbox = this.shadowRoot.querySelector(".chatbox");
 
-      this.widget.style.left = position === "left" ? "20px" : "";
-      this.widget.style.right = position === "right" ? "20px" : "";
+      if (!widget || !chatbox) return;
 
-      this.chatbox.style.left = position === "left" ? "0" : "";
-      this.chatbox.style.right = position === "right" ? "0" : "";
+      widget.style.left = position === "left" ? "20px" : "";
+      widget.style.right = position === "right" ? "20px" : "";
+
+      chatbox.style.left = position === "left" ? "0" : "";
+      chatbox.style.right = position === "right" ? "0" : "";
     }
 
     updateSize(size) {
       if (!this.emojiButton) return;
-
-      let fontSize;
-      switch (size) {
-        case "small":
-          fontSize = "20px";
-          break;
-        case "large":
-          fontSize = "48px";
-          break;
-        case "medium":
-        default:
-          fontSize = "32px";
-      }
+      let fontSize = "32px"; // default medium
+      if (size === "small") fontSize = "20px";
+      else if (size === "large") fontSize = "48px";
 
       this.emojiButton.style.fontSize = fontSize;
     }
