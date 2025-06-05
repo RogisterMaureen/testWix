@@ -136,16 +136,9 @@ if (!customElements.get("hello-world")) {
         if (e.key === "Enter") this.sendButton.click();
       });
 
-      // Init
+      // Initialisation
       this.updatePosition(position);
       this.updateSize(size);
-
-      // Écoute postMessage pour debug depuis Wix Studio
-      window.addEventListener("message", (e) => {
-        const { position, size } = e.data || {};
-        if (position) this.setAttribute("position", position);
-        if (size) this.setAttribute("size", size);
-      });
     }
 
     updatePosition(position) {
