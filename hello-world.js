@@ -22,7 +22,7 @@ if (!customElements.get("hello-world")) {
       container.innerHTML = `
         <style>
           .chat-widget {
-            position: absolute;
+            position: fixed;
             bottom: 20px;
             z-index: 9999;
             font-family: "Segoe UI", sans-serif;
@@ -30,17 +30,19 @@ if (!customElements.get("hello-world")) {
 
           .emoji-button {
             cursor: pointer;
-            background: white;
+            background: linear-gradient(135deg, #667eea, #764ba2);
             border-radius: 50%;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            padding: 8px;
-            transition: transform 0.2s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+            padding: 12px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
             border: none;
             font-size: 32px;
+            color: white;
           }
 
           .emoji-button:hover {
             transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
           }
 
           .chatbox {
@@ -48,12 +50,12 @@ if (!customElements.get("hello-world")) {
             flex-direction: column;
             position: absolute;
             bottom: 60px;
-            width: 300px;
-            height: 400px;
+            width: 320px;
+            height: 420px;
             background: white;
             border: 1px solid #ccc;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             opacity: 0;
             pointer-events: none;
             transform: translateY(20px);
@@ -69,26 +71,27 @@ if (!customElements.get("hello-world")) {
           .chat-header {
             background: #4f46e5;
             color: white;
-            padding: 10px;
+            padding: 12px;
             font-weight: bold;
-            border-top-left-radius: 12px;
-            border-top-right-radius: 12px;
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
+            font-size: 16px;
           }
 
           .chat-messages {
             flex: 1;
-            padding: 10px;
+            padding: 12px;
             overflow-y: auto;
             font-size: 14px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
           }
 
           .message {
             background: #f1f1f1;
-            padding: 8px 12px;
-            border-radius: 16px;
+            padding: 10px 14px;
+            border-radius: 20px;
             max-width: 80%;
             word-wrap: break-word;
           }
@@ -107,19 +110,19 @@ if (!customElements.get("hello-world")) {
           .chat-input input {
             flex: 1;
             border: none;
-            padding: 10px;
+            padding: 12px;
             font-size: 14px;
             outline: none;
-            border-bottom-left-radius: 12px;
+            border-bottom-left-radius: 16px;
           }
 
           .chat-input button {
             background: #4f46e5;
             color: white;
             border: none;
-            padding: 10px 15px;
+            padding: 12px 18px;
             cursor: pointer;
-            border-bottom-right-radius: 12px;
+            border-bottom-right-radius: 16px;
           }
         </style>
 
@@ -136,30 +139,40 @@ if (!customElements.get("hello-world")) {
             </div>
           </div>
         </div>
+
+        <audio id="openSound" src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA="></audio>
+        <audio id="sendSound" src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA="></audio>
+        <audio id="receiveSound" src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA="></audio>
       `;
 
       this.shadowRoot.appendChild(container);
 
-      // Références utiles
       this.emojiButton = this.shadowRoot.querySelector(".emoji-button");
       this.chatbox = this.shadowRoot.querySelector(".chatbox");
       this.input = this.shadowRoot.querySelector("input");
       this.sendButton = this.shadowRoot.querySelector(".chat-input button");
       this.messages = this.shadowRoot.querySelector(".chat-messages");
 
-      // Toggle chatbox
+      // 🔊 Sons
+      this.openSound = this.shadowRoot.getElementById("openSound");
+      this.sendSound = this.shadowRoot.getElementById("sendSound");
+      this.receiveSound = this.shadowRoot.getElementById("receiveSound");
+
+      // 🧭 Position & taille
+      this.updatePosition(position);
+      this.updateSize(size);
+
+      // 📦 Toggle chatbox
       this.emojiButton.addEventListener("click", () => {
-        this.chatbox.classList.toggle("open");
+        const isOpen = this.chatbox.classList.toggle("open");
+        if (isOpen) this.openSound.play();
       });
 
-      // Envoi de message
+      // 🎯 Envoi message
       this.sendButton.addEventListener("click", () => this.handleMessage());
       this.input.addEventListener("keypress", (e) => {
         if (e.key === "Enter") this.handleMessage();
       });
-
-      this.updatePosition(position);
-      this.updateSize(size);
     }
 
     updatePosition(position) {
@@ -197,12 +210,13 @@ if (!customElements.get("hello-world")) {
 
       this.addMessage(text, "user");
       this.input.value = "";
+      this.sendSound.play();
 
-      // Réponse hardcodée simulée
       setTimeout(() => {
         const response = this.getAutoReply(text);
         this.addMessage(response, "bot");
-      }, 500);
+        this.receiveSound.play();
+      }, 600);
     }
 
     addMessage(content, type = "bot") {
@@ -215,7 +229,6 @@ if (!customElements.get("hello-world")) {
 
     getAutoReply(userText) {
       const lower = userText.toLowerCase();
-
       if (lower.includes("prix") || lower.includes("tarif")) return "Nos prix varient selon les options choisies. 😊";
       if (lower.includes("bonjour") || lower.includes("salut")) return "Bonjour à vous ! Comment puis-je aider ?";
       if (lower.includes("aide") || lower.includes("support")) return "Je suis là pour vous aider. Dites-m'en plus.";
