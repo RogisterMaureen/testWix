@@ -165,7 +165,14 @@ if (!customElements.get("hello-world")) {
       // 📦 Toggle chatbox
       this.emojiButton.addEventListener("click", () => {
         const isOpen = this.chatbox.classList.toggle("open");
-        if (isOpen) this.openSound.play();
+        if (isOpen) {
+          this.openSound.play();
+          this.chatIcon.style.display = "none";
+          this.closeIcon.style.display = "inline";
+        } else {
+          this.chatIcon.style.display = "inline";
+          this.closeIcon.style.display = "none";
+        }
       });
 
       // 🎯 Envoi message
@@ -173,6 +180,29 @@ if (!customElements.get("hello-world")) {
       this.input.addEventListener("keypress", (e) => {
         if (e.key === "Enter") this.handleMessage();
       });
+
+      // ✨ Close on outside click
+      this.boundHandleOutsideClick = this.handleOutsideClick.bind(this);
+      this.shadowRoot.ownerDocument.addEventListener('click', this.boundHandleOutsideClick);
+    }
+
+    disconnectedCallback() {
+      this.shadowRoot.ownerDocument.removeEventListener('click', this.boundHandleOutsideClick);
+    }
+
+    handleOutsideClick(event) {
+      if (!this.chatbox.classList.contains('open')) {
+        return; // Do nothing if the chatbox is already closed
+      }
+
+      const clickedInsideWidget = event.composedPath().includes(this.shadowRoot.querySelector('.chat-widget'));
+      
+      if (!clickedInsideWidget) {
+        this.chatbox.classList.remove('open');
+        this.chatIcon.style.display = "inline";
+        this.closeIcon.style.display = "none";
+        // Optionally play a close sound here if desired
+      }
     }
 
     updatePosition(position) {
