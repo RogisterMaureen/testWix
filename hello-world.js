@@ -164,14 +164,19 @@ if (!customElements.get("hello-world")) {
 
     updatePosition(position) {
       const widget = this.shadowRoot.querySelector(".chat-widget");
+      const chatbox = this.shadowRoot.querySelector(".chatbox");
       if (!widget) return;
 
       if (position === "left") {
         widget.style.left = "20px";
         widget.style.right = "auto";
+        chatbox.style.left = "20px";
+        chatbox.style.right = "auto";
       } else {
         widget.style.right = "20px";
         widget.style.left = "auto";
+        chatbox.style.right = "20px";
+        chatbox.style.left = "auto";
       }
     }
 
